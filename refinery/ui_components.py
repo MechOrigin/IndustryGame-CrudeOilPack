@@ -1,8 +1,8 @@
-from tkinter import Frame, Button, Entry, Label
-from tkinter import Frame, Label, Listbox, Scrollbar, Button
+from tkinter import Frame, Label, Listbox, Scrollbar, Button, Entry
+from tkinter import Toplevel, Label, Button, OptionMenu, StringVar
 
 def setup_bounty_board(root, bot_manager, chat_box, market):
-    bounty_frame = Frame(root, bg="lightyellow", width=300)
+    bounty_frame = Frame(root, bg="lightyellow", width=400)  # Increased width
     bounty_frame.pack(side="right", fill="both", expand=False)
 
     Label(bounty_frame, text="Bounty Board", font=("Arial", 14), bg="lightyellow").pack(pady=5)
@@ -59,7 +59,7 @@ def setup_ui(root, chat_box, market, bot_manager, tower_manager):
 
     # Add selling controls
     Label(control_frame, text="Selling Controls", font=("Arial", 14)).pack(pady=5)
-    for product in market.base_prices.keys():
+    for product in market.prices.keys():
         sell_frame = Frame(control_frame)
         sell_frame.pack(pady=5, fill="x")
         Label(sell_frame, text=f"Sell {product}:").pack(side="left")
@@ -71,3 +71,37 @@ def setup_ui(root, chat_box, market, bot_manager, tower_manager):
 
     # Add buttons for market graph
     Button(control_frame, text="Show Market Chart", command=market.show_graph).pack(pady=10)
+
+def setup_inventory_ui(root, market):
+    inventory_frame = Frame(root, bg="lightblue")
+    inventory_frame.pack(side="top", fill="x", pady=10)
+
+    inventory_label = Label(inventory_frame, text="Inventory:", font=("Arial", 14), bg="lightblue")
+    inventory_label.pack(anchor="w")
+
+    items_label = Label(inventory_frame, text="", font=("Arial", 12), bg="lightblue", justify="left")
+    items_label.pack(anchor="w")
+
+    def update_inventory_display(inventory):
+        display_text = "\n".join([f"{item}: {amount}" for item, amount in inventory.items()])
+        items_label.config(text=display_text)
+
+    market.update_callback = update_inventory_display
+
+def setup_options_menu(root):
+    def open_options():
+        options_window = Toplevel(root)
+        options_window.title("Options")
+        options_window.geometry("300x200")
+
+        Label(options_window, text="Window Size:").pack(pady=5)
+        size_var = StringVar(value="800x600")
+        OptionMenu(options_window, size_var, "800x600", "1024x768", "1280x720").pack(pady=5)
+
+        def apply_settings():
+            root.geometry(size_var.get())
+
+        Button(options_window, text="Apply", command=apply_settings).pack(pady=10)
+
+    Button(root, text="Options", command=open_options).pack(side="top", pady=5)
+

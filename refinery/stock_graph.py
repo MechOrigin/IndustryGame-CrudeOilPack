@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+# stock_graph.py
 class StockGraph:
     def __init__(self, market):
         self.market = market
@@ -18,7 +19,7 @@ class StockGraph:
             ax.set_xlabel("Time")
             ax.set_ylabel("Price ($)")
             ax.grid()
-            
+
             min_length = min(len(self.market.time_history), *[len(self.market.price_history[product]) for product in self.market.price_history])
             if min_length > 0:
                 time_data = self.market.time_history[-min_length:]

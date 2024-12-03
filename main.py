@@ -1,12 +1,13 @@
 # main.py
 from tkinter import Tk, Label
-from refinery.ui_components import setup_ui, setup_bounty_board
+from refinery.ui_components import setup_inventory_ui, setup_ui, setup_bounty_board
 from refinery.time_manager import TimeManager
 from refinery.market import Market
 from refinery.bots import BotManager
 from refinery.towers import TowerManager
 from refinery.chat_box import ChatBox
 from refinery.game_state import GameState
+from refinery.inventory_manager import InventoryManager
 
 def main():
     root = Tk()
@@ -29,9 +30,14 @@ def main():
 
     setup_ui(root, chat_box, market, bot_manager, tower_manager)
     setup_bounty_board(root, bot_manager, chat_box, market)
+    # Initialize Inventory Manager
+    inventory_manager = InventoryManager()
+
+    # Set up inventory UI
+    setup_inventory_ui(root, inventory_manager)
 
     # Time Manager
-    time_manager = TimeManager(root, market, bot_manager, game_state, tower_manager, time_label)
+    time_manager = TimeManager(root, time_label)
     time_manager.start()
 
     # Save game periodically
