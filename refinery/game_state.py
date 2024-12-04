@@ -1,6 +1,7 @@
 # game_state.py
 import pickle
 import os
+from refinery.save_manager import SaveManager
 
 class GameState:
     def __init__(self, market, tower_manager, bot_manager):
@@ -15,22 +16,13 @@ class GameState:
             "towers": self.tower_manager.get_state(),
             "bots": self.bot_manager.get_state(),
         }
-        with open(self.save_path, "wb") as file:
-            pickle.dump(state, file)
+        SaveManager.save(self.save_path, state)
 
     def load(self):
-        if os.path.exists(self.save_path):
-            with open(self.save_path, "rb") as file:
-                state = pickle.load(file)
-                if "market" in state and "towers" in state and "bots" in state:
-                    self.market.load_state(state["market"])
-                    self.tower_manager.load_state(state["towers"])
-                    self.bot_manager.load_state(state["bots"])
-                    return True
-                else:
-                    self.market.load_state({})
-                    self.tower_manager.load_state([])
-                    self.bot_manager.load_state([])
-                    return False
+        state = SaveManager.load(self.save_path)
+        if state:
+            self.market.load_state(state.get("market", {}))
+            self.tower_manager.load_state(state.get("towers", []))
+            self.bot_manager.load_state(state.get("bots", []))
+            return True
         return False
-

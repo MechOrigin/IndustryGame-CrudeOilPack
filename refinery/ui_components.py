@@ -25,20 +25,28 @@ def setup_bounty_board(root, bot_manager, chat_box, market):
     Button(bounty_frame, text="Fulfill Bounty", command=lambda: market.fulfill_bounty(chat_box)).pack(pady=5)
 
 def setup_inventory_ui(root, market):
-    inventory_frame = Frame(root, bg="lightblue")
-    inventory_frame.pack(side="top", fill="x", pady=10)
+    # Create the inventory frame
+    inventory_frame = Frame(root, bg="lightblue", width=600, height=300)
+    inventory_frame.pack(side="top", fill="x", pady=10, padx=10)
 
-    inventory_label = Label(inventory_frame, text="Inventory & Market Prices:", font=("Arial", 14), bg="lightblue")
-    inventory_label.pack(anchor="w")
+    # Add title
+    inventory_label = Label(inventory_frame, text="Inventory & Market Prices:", font=("Arial", 16), bg="lightblue")
+    inventory_label.pack(anchor="w", pady=5)
 
-    items_label = Label(inventory_frame, text="", font=("Arial", 12), bg="lightblue", justify="left")
-    items_label.pack(anchor="w")
+    # Dynamic inventory display
+    items_label = Label(inventory_frame, text="", font=("Arial", 14), bg="lightblue", justify="left")
+    items_label.pack(anchor="w", padx=10)
 
     def update_inventory_display(inventory):
-        display_text = "\n".join([f"{item}: {amount} @ ${market.prices.get(item, 0):.3f}" for item, amount in inventory.items()])
-        items_label.config(text=display_text)
+        """Update the inventory dynamically based on the current state."""
+        inventory_text = "\n".join([f"{item}: {amount}" for item, amount in inventory.items()])
+        items_label.config(text=inventory_text)
 
-    market.update_callback = update_inventory_display
+    # Link the inventory update callback to the market
+    market.inventory_manager.set_update_callback(update_inventory_display)
+
+    # Initial inventory display
+    update_inventory_display(market.inventory_manager.inventory)
 
 def setup_ui(root, chat_box, market, bot_manager, tower_manager):
     control_frame = Frame(root)
@@ -64,6 +72,12 @@ def setup_ui(root, chat_box, market, bot_manager, tower_manager):
     Button(control_frame, text="Sell All", command=lambda: market.sell_all(chat_box)).pack(pady=10)
     Button(control_frame, text="Show Market Chart", command=market.show_graph).pack(pady=10)
 
+    Label(control_frame, text="Market Controls", font=("Arial", 14)).pack(pady=5)
+    Button(control_frame, text="Show Market Chart", command=market.show_graph).pack(pady=10)
+
+    Label(control_frame, text="Bounty Controls", font=("Arial", 14)).pack(pady=5)
+    Button(control_frame, text="Fulfill Bounty", command=lambda: market.simulate_trade()).pack(pady=5)
+
 def setup_options_menu(root):
     def open_options():
         options_window = Toplevel(root)
@@ -80,3 +94,36 @@ def setup_options_menu(root):
         Button(options_window, text="Apply", command=apply_settings).pack(pady=10)
 
     Button(root, text="Options", command=open_options).pack(side="top", pady=5)
+
+def setup_tower_ui(root, tower_manager):
+    tower_frame = Frame(root, bg="lightgreen", width=800, height=300)
+    tower_frame.pack(side="top", fill="x", pady=10, padx=10)
+
+    Label(tower_frame, text="Tower Status", font=("Arial", 16), bg="lightgreen").pack(anchor="w", pady=5)
+
+    tower_labels = []
+
+    # Create individual labels for each tower
+    for tower in tower_manager.towers:
+        tower_label = Label(
+            tower_frame,
+            text=f"Tower {tower['id']}: Available, Capacity: {tower['capacity']} barrels",
+            font=("Arial", 14),
+            bg="lightgreen",
+            justify="left"
+        )
+        tower_label.pack(anchor="w", padx=10)
+        tower_labels.append(tower_label)
+
+    def update_tower_display():
+        for idx, tower in enumerate(tower_manager.towers):
+            if tower["processing"]:
+                status = f"Processing, Time Left: {tower['timer']} ticks"
+            else:
+                status = "Available"
+            tower_labels[idx].config(
+                text=f"Tower {tower['id']}: {status}, Capacity: {tower['capacity']} barrels"
+            )
+        root.after(1000, update_tower_display)
+
+    update_tower_display()

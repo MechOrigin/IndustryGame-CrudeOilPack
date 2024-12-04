@@ -1,20 +1,20 @@
 # towers.py
 class TowerManager:
     def __init__(self, chat_box):
-        self.towers = [{"id": 1, "processing": False, "timer": 0, "capacity": 100}]
+        self.towers = [{"id": i + 1, "processing": False, "timer": 0, "capacity": 80} for i in range(3)]
         self.chat_box = chat_box
+        self.inventory_manager = None
 
-    def process_all(self, barrels):
-        processed = 0
+    def link_inventory_manager(self, inventory_manager):
+        self.inventory_manager = inventory_manager
+
+    def process_all(self):
         for tower in self.towers:
-            if not tower["processing"] and barrels > 0:
-                to_process = min(barrels, tower["capacity"])
+            if not tower["processing"]:
                 tower["processing"] = True
-                tower["timer"] = to_process  # Simulate 1 second per barrel
-                processed += to_process
-                barrels -= to_process
-                self.chat_box.append_message(f"Processing {to_process} barrels in Tower {tower['id']}")
-        return processed
+                tower["timer"] = 8  # Takes 8 ticks to process
+                self.chat_box.append_message(f"Tower {tower['id']} started processing.")
+
 
     def process_specific(self, barrels):
         try:
@@ -42,15 +42,15 @@ class TowerManager:
         self.chat_box.append_message(f"New tower added. Total towers: {len(self.towers)}")
 
     def update(self):
-        completed = 0
         for tower in self.towers:
             if tower["processing"]:
                 tower["timer"] -= 1
                 if tower["timer"] <= 0:
                     tower["processing"] = False
-                    completed += tower["capacity"]
+                    self.inventory_manager.add_to_inventory("Diesel", 40)
+                    self.inventory_manager.add_to_inventory("Gasoline", 20)
+                    self.inventory_manager.add_to_inventory("Light Hydrocarbons", 20)
                     self.chat_box.append_message(f"Tower {tower['id']} completed processing.")
-        return completed
 
     def get_state(self):
         return [{"id": tower["id"], "processing": tower["processing"], "timer": tower["timer"], "capacity": tower["capacity"]} for tower in self.towers]
