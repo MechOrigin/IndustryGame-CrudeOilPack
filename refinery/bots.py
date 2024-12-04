@@ -1,11 +1,12 @@
 # bots.py
 import random
 
+
 class Bot:
     def __init__(self, name, market):
         self.name = name
         self.inventory = {}
-        self.money = 0
+        self.money = 1000  # Default starting money for each bot
         self.market = market
 
     def trade(self):
@@ -26,7 +27,7 @@ class Bot:
                             self.money += revenue
 
     def generate_bounty(self):
-        if self.market:  # Ensure the market reference is valid
+        if self.market:
             product = random.choice(list(self.market.prices.keys()))
             amount = random.randint(10, 50)
             price = round(self.market.prices[product] * (1 + random.uniform(-0.2, 0.2)), 3)
@@ -44,7 +45,11 @@ class BotManager:
             bot.trade()
 
     def get_bounties(self):
-        return [bounty for bot in self.bots if (bounty := bot.generate_bounty()) is not None]
+        return [
+            bot.generate_bounty()
+            for bot in self.bots
+            if bot.generate_bounty() is not None
+        ]
 
     def get_state(self):
         return [

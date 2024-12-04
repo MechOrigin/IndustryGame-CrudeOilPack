@@ -1,3 +1,4 @@
+# game_state.py
 import pickle
 import os
 
@@ -21,8 +22,15 @@ class GameState:
         if os.path.exists(self.save_path):
             with open(self.save_path, "rb") as file:
                 state = pickle.load(file)
-                self.market.load_state(state["market"])
-                self.tower_manager.load_state(state["towers"])
-                self.bot_manager.load_state(state["bots"])
-                return True
+                if "market" in state and "towers" in state and "bots" in state:
+                    self.market.load_state(state["market"])
+                    self.tower_manager.load_state(state["towers"])
+                    self.bot_manager.load_state(state["bots"])
+                    return True
+                else:
+                    self.market.load_state({})
+                    self.tower_manager.load_state([])
+                    self.bot_manager.load_state([])
+                    return False
         return False
+
