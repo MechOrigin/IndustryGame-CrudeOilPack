@@ -1,28 +1,39 @@
 # game_state.py
 import pickle
 import os
-from refinery.save_manager import SaveManager
 
 class GameState:
-    def __init__(self, market, tower_manager, bot_manager):
-        self.market = market
+    def __init__(self, inventory_manager, tower_manager, bot_manager):
+        self.inventory_manager = inventory_manager
         self.tower_manager = tower_manager
-        self.bot_manager = bot_manager
-        self.save_path = "assets/saves/game_state.pkl"
+        # self.bot_manager = bot_manager
+        self.save_directory = "assets/saves"
+        self.save_file = "game_save.pkl"
+
+        # Create the save directory if it doesn't exist
+        if not os.path.exists(self.save_directory):
+            os.makedirs(self.save_directory)
 
     def save(self):
+        save_path = os.path.join(self.save_directory, self.save_file)
         state = {
-            "market": self.market.get_state(),
+            "inventory": self.inventory_manager.inventory,
+            "money": self.inventory_manager.money,
             "towers": self.tower_manager.get_state(),
-            "bots": self.bot_manager.get_state(),
+            # "bots": self.bot_manager.get_state(),
         }
-        SaveManager.save(self.save_path, state)
+        with open(save_path, "wb") as f:
+            pickle.dump(state, f)
 
     def load(self):
-        state = SaveManager.load(self.save_path)
-        if state:
-            self.market.load_state(state.get("market", {}))
-            self.tower_manager.load_state(state.get("towers", []))
-            self.bot_manager.load_state(state.get("bots", []))
-            return True
-        return False
+        save_path = os.path.join(self.save_directory, self.save_file)
+        try:
+            with open(save_path, "rb") as f:
+                state = pickle.load(f)
+                self.inventory_manager.inventory = state["inventory"]
+                self.inventory_manager.money = state["money"]
+                self.tower_manager.set_state(state["towers"])
+                # self.bot_manager.set_state(state["bots"])
+                return True
+        except FileNotFoundError:
+            return False

@@ -27,14 +27,13 @@ def main():
         bot_manager = BotManager(market, chat_box)
         tower_manager = TowerManager(chat_box)
         tower_manager.link_inventory_manager(inventory_manager)
-        game_state = GameState(market, tower_manager, bot_manager)
+
+
+        # Updated to match GameState definition
+        game_state = GameState(inventory_manager, tower_manager, bot_manager)
 
         if not game_state.load():
-            chat_box.append_message("New game started.")
-            logger.info("Initialized a new game.")
-        else:
-            chat_box.append_message("Game state loaded.")
-            logger.info("Loaded game state.")
+            chat_box.append_message("No save data found. Starting a new game!")
 
         time_label = Label(root, text="Time Remaining: 8 ticks", font=("Arial", 14))
         time_label.pack()

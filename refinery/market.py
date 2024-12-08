@@ -39,6 +39,23 @@ class Market:
         """Display the market price graph."""
         self.stock_graph.display()
 
+    def sell_product(self, product, amount, chat_box):
+        try:
+            amount = int(amount)
+            if product not in self.prices:
+                chat_box.append_message(f"{product} is not a valid product.")
+                return
+            if self.inventory_manager.get_inventory().get(product, 0) < amount:
+                chat_box.append_message(f"Not enough {product} in inventory!")
+                return
+
+            total_price = amount * self.prices[product]
+            self.inventory_manager.add_to_inventory(product, -amount)
+            self.inventory_manager.add_to_inventory("Money", total_price)
+            chat_box.append_message(f"Sold {amount} {product} for ${total_price:.2f}.")
+        except ValueError:
+            chat_box.append_message("Invalid amount entered for selling.")
+
     def get_state(self):
         return {
             "prices": self.prices,
