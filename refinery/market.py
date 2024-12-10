@@ -1,43 +1,46 @@
 # market.py
 from datetime import datetime
-from random import uniform
 from refinery.stock_graph import StockGraph
+import matplotlib
+import logging
+
+# Suppress matplotlib debug logs
+matplotlib_logger = logging.getLogger('matplotlib')
+matplotlib_logger.setLevel(logging.WARNING)
 
 class Market:
-    def __init__(self, chat_box):
+    def __init__(self, chat_box, inventory_manager):
         self.chat_box = chat_box
-        self.base_prices = {"Gasoline": 5, "Diesel": 6, "Light Hydrocarbons": 4, "Crude Oil": 3}
-        self.prices = self.base_prices.copy()
-        self.price_history = {key: [] for key in self.base_prices}
-        self.time_history = []
-        self.supply = {key: 1000 for key in self.base_prices}  # Initial supply
-        self.demand = {key: 1000 for key in self.base_prices}  # Initial demand
-        self.stock_graph = StockGraph(self)
-        self.inventory_manager = None  # Placeholder for inventory manager
-
-    def link_inventory_manager(self, inventory_manager):
-        """Link the InventoryManager to this Market instance."""
         self.inventory_manager = inventory_manager
+        self.prices = {
+            "Diesel": 10.5,
+            "Gasoline": 8.75,
+            "Light Hydrocarbons": 5.0,
+            "Crude Oil": 3.0,
+        }
+        self.price_history = {product: [] for product in self.prices}
+        self.time_history = []
+        self.stock_graph = StockGraph(self)
 
     def update_prices(self):
+        # Simulate price changes
+        from random import uniform
         for product in self.prices:
-            supply_demand_ratio = (self.demand[product] + 1) / (self.supply[product] + 1)
-            price_change = min(max(0.9, supply_demand_ratio), 1.1)
-            self.prices[product] = max(1, self.prices[product] * price_change)
-            self.price_history[product].append(self.prices[product])
+            self.prices[product] += uniform(-0.5, 0.5)
+            self.prices[product] = round(self.prices[product], 2)  # Keep prices rounded to 2 decimals
 
         self.time_history.append(datetime.now())
-        self.chat_box.append_message("Market prices updated.")
-
-    def simulate_trade(self):
         for product in self.prices:
-            self.supply[product] = max(0, self.supply[product] + int(uniform(-50, 50)))
-            self.demand[product] = max(0, self.demand[product] + int(uniform(-50, 50)))
-            self.chat_box.append_message(f"{product}: Supply {self.supply[product]}, Demand {self.demand[product]}")
+            self.price_history[product].append(self.prices[product])
+
+        # Keep history limited to last 100 entries
+        if len(self.time_history) > 100:
+            self.time_history.pop(0)
+            for product in self.price_history:
+                self.price_history[product].pop(0)
 
     def show_graph(self):
-        """Display the market price graph."""
-        self.stock_graph.display()
+        self.stock_graph.display(self.time_history, self.price_history)
 
     def sell_product(self, product, amount, chat_box):
         try:
@@ -55,19 +58,3 @@ class Market:
             chat_box.append_message(f"Sold {amount} {product} for ${total_price:.2f}.")
         except ValueError:
             chat_box.append_message("Invalid amount entered for selling.")
-
-    def get_state(self):
-        return {
-            "prices": self.prices,
-            "price_history": self.price_history,
-            "time_history": self.time_history,
-            "supply": self.supply,
-            "demand": self.demand,
-        }
-
-    def load_state(self, state):
-        self.prices = state.get("prices", self.base_prices.copy())
-        self.price_history = state.get("price_history", {key: [] for key in self.base_prices})
-        self.time_history = state.get("time_history", [])
-        self.supply = state.get("supply", {key: 1000 for key in self.base_prices})
-        self.demand = state.get("demand", {key: 1000 for key in self.base_prices})

@@ -21,8 +21,16 @@ def main():
 
         chat_box = ChatBox(root)
         inventory_manager = InventoryManager()
-        market = Market(chat_box)
-        market.link_inventory_manager(inventory_manager)
+
+        # Pass inventory_manager to the Market initialization
+        market = Market(chat_box, inventory_manager)
+        bot_manager = BotManager(market, chat_box)
+
+        def update_market_prices():
+            market.update_prices()
+            root.after(1000, update_market_prices)
+
+        update_market_prices()
 
         bot_manager = BotManager(market, chat_box)
         tower_manager = TowerManager(chat_box)
@@ -44,7 +52,7 @@ def main():
         setup_tower_ui(root, tower_manager)
         setup_ui(root, chat_box, market, bot_manager, tower_manager)
         setup_bounty_board(root, bot_manager, chat_box, market)
-        setup_options_menu(root)
+        setup_options_menu(root, time_manager)
 
         def update_towers():
             tower_manager.update()

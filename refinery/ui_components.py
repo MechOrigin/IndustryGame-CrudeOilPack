@@ -1,5 +1,8 @@
-from tkinter import Frame, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
+from tkinter import Frame, IntVar, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
 import os
+from tkinter.ttk import Scale
+
+from matplotlib.ft2font import HORIZONTAL
 
 SAVE_FILE_PATH = "game_save.pkl"  # Adjust to your actual save file location
 
@@ -29,13 +32,13 @@ def setup_bounty_board(root, bot_manager, chat_box, market):
     Button(bounty_frame, text="Fulfill Bounty", command=lambda: market.fulfill_bounty(chat_box)).pack(pady=5)
 
 def setup_inventory_ui(root, market):
-    inventory_frame = Frame(root, bg="lightblue", width=600, height=300)
-    inventory_frame.pack(side="top", fill="x", pady=10, padx=10)
+    inventory_frame = Frame(root, bg="lightblue", width=300, height=200)
+    inventory_frame.pack(side="top", anchor="nw", pady=10, padx=10)
 
-    inventory_label = Label(inventory_frame, text="Inventory & Market Prices:", font=("Arial", 16), bg="lightblue")
+    inventory_label = Label(inventory_frame, text="Inventory", font=("Arial", 14), bg="lightblue")
     inventory_label.pack(anchor="w", pady=5)
 
-    items_label = Label(inventory_frame, text="", font=("Arial", 14), bg="lightblue", justify="left")
+    items_label = Label(inventory_frame, text="", font=("Arial", 12), bg="lightblue", justify="left")
     items_label.pack(anchor="w", padx=10)
 
     def update_inventory_display(inventory):
@@ -73,12 +76,13 @@ def setup_ui(root, chat_box, market, bot_manager, tower_manager):
     Label(control_frame, text="Bounty Controls", font=("Arial", 14)).pack(pady=5)
     Button(control_frame, text="Fulfill Bounty", command=lambda: market.simulate_trade()).pack(pady=5)
 
-def setup_options_menu(root):
+def setup_options_menu(root, time_manager):
     def open_options():
         options_window = Toplevel(root)
         options_window.title("Options")
-        options_window.geometry("300x200")
+        options_window.geometry("300x400")
 
+        # Window Size Options
         Label(options_window, text="Window Size:").pack(pady=5)
         size_var = StringVar(value="1024x768")
         OptionMenu(options_window, size_var, "800x600", "1024x768", "1280x720").pack(pady=5)
@@ -88,6 +92,7 @@ def setup_options_menu(root):
 
         Button(options_window, text="Apply", command=apply_settings).pack(pady=10)
 
+        # Delete Save Data
         def delete_save_data():
             if os.path.exists(SAVE_FILE_PATH):
                 os.remove(SAVE_FILE_PATH)
@@ -95,17 +100,37 @@ def setup_options_menu(root):
             else:
                 Label(options_window, text="No save data found!", fg="red").pack(pady=5)
 
-            Button(options_window, text="Delete Save Data", command=delete_save_data).pack(pady=10)
+        Button(options_window, text="Delete Save Data", command=delete_save_data).pack(pady=10)
 
+        # Developer Menu
+        Label(options_window, text="Developer Menu", font=("Arial", 14)).pack(pady=10)
+
+        # Tick Speed Input Field
+        Label(options_window, text="Enter Tick Speed Multiplier (x):").pack(pady=5)
+        tick_speed_entry = Entry(options_window)
+        tick_speed_entry.pack(pady=5)
+
+        def apply_tick_speed():
+            try:
+                multiplier = float(tick_speed_entry.get())
+                if multiplier > 0:
+                    time_manager.set_speed(multiplier)
+                    Label(options_window, text=f"Tick speed set to {multiplier}x", fg="green").pack(pady=5)
+                else:
+                    Label(options_window, text="Please enter a value greater than 0!", fg="red").pack(pady=5)
+            except ValueError:
+                Label(options_window, text="Invalid input! Enter a number.", fg="red").pack(pady=5)
+
+        Button(options_window, text="Apply Tick Speed", command=apply_tick_speed).pack(pady=10)
 
     Button(root, text="Options", command=open_options).pack(side="top", pady=5)
 
 
 def setup_tower_ui(root, tower_manager):
-    tower_frame = Frame(root, bg="lightgreen", width=800, height=300)
-    tower_frame.pack(side="top", fill="x", pady=10, padx=10)
+    tower_frame = Frame(root, bg="lightgreen", width=300, height=200)
+    tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
 
-    Label(tower_frame, text="Tower Status", font=("Arial", 16), bg="lightgreen").pack(anchor="w", pady=5)
+    Label(tower_frame, text="Tower Status", font=("Arial", 14), bg="lightgreen").pack(anchor="w", pady=5)
 
     tower_labels = []
 
@@ -113,7 +138,7 @@ def setup_tower_ui(root, tower_manager):
         tower_label = Label(
             tower_frame,
             text=f"Tower {tower['id']}:\nAvailable\n0/80 barrels",
-            font=("Arial", 14),
+            font=("Arial", 12),
             bg="white"
         )
         tower_label.pack(anchor="w", padx=10, pady=5)

@@ -35,6 +35,8 @@ class TowerManager:
 
     def process_all(self):
         crude_oil_balance = self.inventory_manager.get_inventory().get("Crude Oil", 0)
+        total_processed = 0
+
         if crude_oil_balance <= 0:
             self.chat_box.append_message("No Crude Oil available for processing!")
             return
@@ -49,18 +51,22 @@ class TowerManager:
                 tower["processing"] = True
                 tower["timer"] = 8
                 crude_oil_balance -= to_add
+                total_processed += to_add
 
-        self.inventory_manager.add_to_inventory("Crude Oil", -crude_oil_balance)
-        self.chat_box.append_message("Processing all Crude Oil across towers.")
+        self.inventory_manager.add_to_inventory("Crude Oil", -total_processed)
+        self.chat_box.append_message(f"Processing {total_processed} barrels of Crude Oil across towers.")
 
 
     def process_specific(self, barrels):
         try:
             barrels = int(barrels)
-            if self.inventory_manager.get_inventory().get("Crude Oil", 0) < barrels:
+            available_oil = self.inventory_manager.get_inventory().get("Crude Oil", 0)
+
+            if barrels > available_oil:
                 self.chat_box.append_message("Not enough Crude Oil in inventory!")
                 return
 
+            total_added = 0
             for tower in self.towers:
                 if barrels <= 0:
                     break
@@ -71,9 +77,13 @@ class TowerManager:
                     tower["processing"] = True
                     tower["timer"] = 8
                     barrels -= to_add
+                    total_added += to_add
 
-            self.inventory_manager.add_to_inventory("Crude Oil", -int(barrels))
-            self.chat_box.append_message("Started processing barrels across towers.")
+            if total_added > 0:
+                self.inventory_manager.add_to_inventory("Crude Oil", -total_added)
+                self.chat_box.append_message(f"Processing {total_added} barrels of Crude Oil across towers.")
+            else:
+                self.chat_box.append_message("No available space in towers to process Crude Oil.")
         except ValueError:
             self.chat_box.append_message("Invalid number of barrels entered!")
 
@@ -101,11 +111,14 @@ class TowerManager:
         return [{"id": tower["id"], "processing": tower["processing"], "timer": tower["timer"], "capacity": tower["capacity"]} for tower in self.towers]
 
     def set_state(self, state):
-        # Ensure state has all required keys
+        # Ensure all required keys are present when loading state
         for tower in state:
-            tower.setdefault("current", 0)
+            tower.setdefault("id", len(self.towers) + 1)
             tower.setdefault("processing", False)
             tower.setdefault("timer", 0)
+            tower.setdefault("capacity", 80)
+            tower.setdefault("current", 0)
+            tower.setdefault("selected", False)
         self.towers = state
 
     def load_state(self, state):
