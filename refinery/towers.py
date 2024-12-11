@@ -8,6 +8,12 @@ class TowerManager:
         ]
         self.chat_box = chat_box
         self.inventory_manager = None
+        self.tick_speed = 1000
+
+    def set_tick_speed(self, speed_multiplier):
+        """Adjust tower processing speed."""
+        self.tick_speed = int(1000 / speed_multiplier)
+
 
     def link_inventory_manager(self, inventory_manager):
         self.inventory_manager = inventory_manager

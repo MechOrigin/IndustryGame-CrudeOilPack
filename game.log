@@ -11568,3 +11568,108 @@ TypeError: setup_options_menu() missing 1 required positional argument: 'time_ma
 2024-12-09 08:48:32,788 [INFO]: Game state saved.
 2024-12-09 08:49:33,035 [INFO]: Game state saved.
 2024-12-09 08:50:33,043 [INFO]: Game state saved.
+2024-12-10 17:08:46,939 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:08:47,460 [INFO]: Game state saved.
+2024-12-10 17:11:16,260 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:11:16,637 [ERROR]: An unexpected error occurred: TimeManager.__init__() missing 2 required positional arguments: 'market' and 'tower_manager'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 48, in main
+    time_manager = TimeManager(root, time_label, inventory_manager)
+TypeError: TimeManager.__init__() missing 2 required positional arguments: 'market' and 'tower_manager'
+2024-12-10 17:11:33,031 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:11:33,442 [INFO]: Game state saved.
+2024-12-10 17:12:33,449 [INFO]: Game state saved.
+2024-12-10 17:13:33,452 [INFO]: Game state saved.
+2024-12-10 17:14:33,457 [INFO]: Game state saved.
+2024-12-10 17:15:33,465 [INFO]: Game state saved.
+2024-12-10 17:16:33,469 [INFO]: Game state saved.
+2024-12-10 17:17:33,480 [INFO]: Game state saved.
+2024-12-10 17:19:42,165 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:19:42,570 [INFO]: Game state saved.
+2024-12-10 17:20:14,253 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,255 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,256 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,257 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,258 [DEBUG]: STREAM b'IDAT' 78 1189
+2024-12-10 17:20:14,331 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,332 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,332 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,333 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,334 [DEBUG]: STREAM b'IDAT' 78 2994
+2024-12-10 17:20:14,419 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,420 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,421 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,421 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,422 [DEBUG]: STREAM b'IDAT' 78 374
+2024-12-10 17:20:14,431 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,432 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,433 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,433 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,435 [DEBUG]: STREAM b'IDAT' 78 286
+2024-12-10 17:20:14,443 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,444 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,445 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,446 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,446 [DEBUG]: STREAM b'IDAT' 78 263
+2024-12-10 17:20:14,454 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,455 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,456 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,457 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,458 [DEBUG]: STREAM b'IDAT' 78 387
+2024-12-10 17:20:14,465 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,466 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,467 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,468 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,468 [DEBUG]: STREAM b'IDAT' 78 436
+2024-12-10 17:20:14,476 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,477 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,477 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,478 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,479 [DEBUG]: STREAM b'IDAT' 78 351
+2024-12-10 17:20:14,485 [DEBUG]: STREAM b'IHDR' 16 13
+2024-12-10 17:20:14,486 [DEBUG]: STREAM b'sBIT' 41 4
+2024-12-10 17:20:14,486 [DEBUG]: b'sBIT' 41 4 (unknown)
+2024-12-10 17:20:14,487 [DEBUG]: STREAM b'pHYs' 57 9
+2024-12-10 17:20:14,488 [DEBUG]: STREAM b'IDAT' 78 364
+2024-12-10 17:20:42,580 [INFO]: Game state saved.
+2024-12-10 17:25:27,773 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:25:28,222 [INFO]: Game state saved.
+2024-12-10 17:26:28,232 [INFO]: Game state saved.
+2024-12-10 17:27:28,238 [INFO]: Game state saved.
+2024-12-10 17:28:28,242 [INFO]: Game state saved.
+2024-12-10 17:29:28,246 [INFO]: Game state saved.
+2024-12-10 17:30:28,263 [INFO]: Game state saved.
+2024-12-10 17:42:08,949 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:42:09,298 [ERROR]: An unexpected error occurred: 'BotManager' object has no attribute 'generate_bounties'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 58, in main
+    setup_bounty_board(root, bot_manager, chat_box, market)
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 55, in setup_bounty_board
+    bounty_tick()
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 51, in bounty_tick
+    bot_manager.generate_bounties()
+AttributeError: 'BotManager' object has no attribute 'generate_bounties'
+2024-12-10 17:43:26,398 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:43:26,742 [ERROR]: An unexpected error occurred: 'BotManager' object has no attribute 'generate_bounties'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 58, in main
+    setup_bounty_board(root, bot_manager, chat_box, market)
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 55, in setup_bounty_board
+    bounty_tick()
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 51, in bounty_tick
+    bot_manager.generate_bounties()
+AttributeError: 'BotManager' object has no attribute 'generate_bounties'
+2024-12-10 17:47:40,646 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:47:41,053 [ERROR]: An unexpected error occurred: 'BotManager' object has no attribute 'market'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 58, in main
+    setup_bounty_board(root, bot_manager, chat_box, market)
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 55, in setup_bounty_board
+    bounty_tick()
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\ui_components.py", line 51, in bounty_tick
+    bot_manager.generate_bounties()
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\refinery\bots.py", line 50, in generate_bounties
+    products = list(self.market.prices.keys())
+AttributeError: 'BotManager' object has no attribute 'market'
+2024-12-10 17:50:04,766 [INFO]: Starting Crude Oil Refinery Game
+2024-12-10 17:50:05,188 [INFO]: Game state saved.

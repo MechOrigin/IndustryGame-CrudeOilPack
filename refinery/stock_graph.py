@@ -1,6 +1,12 @@
 # stock_graph.py
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import matplotlib
+import logging
+
+# Suppress matplotlib debug logs
+matplotlib_logger = logging.getLogger('matplotlib')
+matplotlib_logger.setLevel(logging.WARNING)
 
 class StockGraph:
     def __init__(self, market):
@@ -26,5 +32,5 @@ class StockGraph:
                     ax.plot(time_history, prices, label=product)
             ax.legend()
 
-        ani = FuncAnimation(fig, update, interval=1000)
+        ani = FuncAnimation(fig, update, interval=1000, cache_frame_data=False)
         plt.show()

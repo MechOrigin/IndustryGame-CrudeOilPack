@@ -9,6 +9,10 @@ from refinery.time_manager import TimeManager
 from refinery.towers import TowerManager
 from refinery.ui_components import setup_inventory_ui, setup_tower_ui, setup_ui, setup_bounty_board, setup_options_menu
 from refinery.logger import get_logger
+import logging
+
+# Configure logging level globally
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 logger = get_logger()
 
@@ -45,7 +49,7 @@ def main():
 
         time_label = Label(root, text="Time Remaining: 8 ticks", font=("Arial", 14))
         time_label.pack()
-        time_manager = TimeManager(root, time_label, inventory_manager)
+        time_manager = TimeManager(root, time_label, inventory_manager, market, tower_manager)
         time_manager.start()
 
         setup_inventory_ui(root, market)

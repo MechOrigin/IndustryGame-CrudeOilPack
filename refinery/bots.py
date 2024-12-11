@@ -27,6 +27,7 @@ class Bot:
                             self.money += revenue
 
     def generate_bounty(self):
+        """Generate a single bounty for this bot."""
         if self.market:
             product = random.choice(list(self.market.prices.keys()))
             amount = random.randint(10, 50)
@@ -39,19 +40,36 @@ class BotManager:
     def __init__(self, market, chat_box):
         self.bots = [Bot(f"Bot {i+1}", market) for i in range(25)]
         self.chat_box = chat_box
+        self.bounties = []  # Centralized list of bounties
 
     def update(self):
+        """Update all bots to trade."""
         for bot in self.bots:
             bot.trade()
 
-    def get_bounties(self):
-        return [
-            bot.generate_bounty()
-            for bot in self.bots
-            if bot.generate_bounty() is not None
+    def generate_bounties(self):
+        """Generate a new set of centralized bounties."""
+        products = list(self.bots[0].market.prices.keys()) if self.bots else []
+        if not products:
+            self.chat_box.append_message("No products available in the market for bounties!")
+            return
+
+        self.bounties = [
+            {
+                "product": random.choice(products),
+                "amount": random.randint(10, 100),
+                "price": round(random.uniform(0.8, 1.2) * random.choice([self.bots[0].market.prices[p] for p in products]), 2),
+            }
+            for _ in range(5)
         ]
+        self.chat_box.append_message("Bounties updated!")
+
+    def get_bounties(self):
+        """Retrieve current bounties."""
+        return self.bounties
 
     def get_state(self):
+        """Get the current state of all bots."""
         return [
             {
                 "name": bot.name,
@@ -62,6 +80,7 @@ class BotManager:
         ]
 
     def load_state(self, state):
+        """Load a saved state for all bots."""
         self.bots = []
         for bot_data in state:
             bot = Bot(bot_data["name"], None)  # Market reference can be set after initialization

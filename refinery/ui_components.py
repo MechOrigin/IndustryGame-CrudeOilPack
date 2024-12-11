@@ -20,16 +20,39 @@ def setup_bounty_board(root, bot_manager, chat_box, market):
     scrollbar.pack(side="right", fill="y")
     bounty_listbox.config(yscrollcommand=scrollbar.set)
 
+    def fulfill_selected_bounty():
+        """Handles fulfilling the selected bounty."""
+        selected_index = bounty_listbox.curselection()
+        if not selected_index:
+            chat_box.append_message("No bounty selected!")
+            return
+
+        bounty = bot_manager.get_bounties()[selected_index[0]]
+        if market.inventory_manager.get_inventory().get(bounty["product"], 0) < bounty["amount"]:
+            chat_box.append_message(f"Not enough {bounty['product']} to fulfill this bounty!")
+            return
+
+        market.inventory_manager.remove_from_inventory(bounty["product"], bounty["amount"])
+        market.inventory_manager.add_money(bounty["amount"] * bounty["price"])
+        chat_box.append_message(f"Fulfilled bounty: {bounty['amount']} {bounty['product']} @ ${bounty['price']:.2f}")
+        update_bounties()
+
+    Button(bounty_frame, text="Fulfill Bounty", command=fulfill_selected_bounty).pack(pady=5)
+
     def update_bounties():
+        """Updates the bounty board with new bounties."""
         bounty_listbox.delete(0, "end")
         bounties = bot_manager.get_bounties()
         for idx, bounty in enumerate(bounties):
-            bounty_listbox.insert("end", f"{idx+1}: {bounty['amount']} {bounty['product']} @ ${bounty['price']}")
-        root.after(1000, update_bounties)
+            bounty_listbox.insert("end", f"{idx+1}: {bounty['amount']} {bounty['product']} @ ${bounty['price']:.2f}")
 
-    update_bounties()
+    def bounty_tick():
+        """Independent timer for updating bounties."""
+        bot_manager.generate_bounties()
+        update_bounties()
+        root.after(300 * 1000, bounty_tick)  # 300 ticks = 300 seconds at default tick speed
 
-    Button(bounty_frame, text="Fulfill Bounty", command=lambda: market.fulfill_bounty(chat_box)).pack(pady=5)
+    bounty_tick()
 
 def setup_inventory_ui(root, market):
     inventory_frame = Frame(root, bg="lightblue", width=300, height=200)

@@ -20,7 +20,13 @@ class Market:
         }
         self.price_history = {product: [] for product in self.prices}
         self.time_history = []
+        self.tick_speed = 1000
         self.stock_graph = StockGraph(self)
+
+    def set_tick_speed(self, speed_multiplier):
+        """Adjust market tick speed."""
+        self.tick_speed = int(1000 / speed_multiplier)
+
 
     def update_prices(self):
         # Simulate price changes
