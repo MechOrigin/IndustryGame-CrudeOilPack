@@ -27,5 +27,3 @@ class SaveManager:
         except Exception as e:
             logger.error(f"Failed to load game state: {e}", exc_info=True)
         return None
-
-# TODO: Fix when closing the game, save loads the previous state and it's invalid causing crash; game wont load.
