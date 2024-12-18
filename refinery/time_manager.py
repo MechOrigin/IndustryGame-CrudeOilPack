@@ -18,7 +18,10 @@ class TimeManager:
 
     def start(self):
         self.update_timer()
-        self.root.after(self.tick_speed, self.tick)  # Trigger based on tick speed
+        self.schedule_tick()  # Safely schedule the first tick
+
+    def schedule_tick(self):
+        self.root.after(self.tick_speed, self.tick)
 
     def tick(self):
         try:
@@ -33,15 +36,18 @@ class TimeManager:
 
             # Fetch player trades safely
             player_trades = (self.inventory_manager.get_player_trades()
-                            if hasattr(self.inventory_manager, 'get_player_trades') else {})
+                             if hasattr(self.inventory_manager, 'get_player_trades') else {})
             self.market.update_prices(player_trades)
 
         except Exception as e:
             print(f"Error in tick: {e}")
 
-        # Schedule the next tick at the end of the method
-        self.root.after(self.tick_speed, self.tick)
-
+        # Schedule the next tick safely
+        self.schedule_tick()
 
     def update_timer(self):
         self.time_label.config(text=f"Time Remaining: {self.timer} ticks")
+
+# TODO: SELL ALL BUTTON DOESNT WORK
+# todo: sell controls dont work at all actually
+# todo: fullfill bountry doesnt work
