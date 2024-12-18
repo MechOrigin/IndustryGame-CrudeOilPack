@@ -1,19 +1,19 @@
 from tkinter import Frame, IntVar, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
 import os
 from tkinter.ttk import Scale
+import threading
 
 from matplotlib.ft2font import HORIZONTAL
 
-SAVE_FILE_PATH = "game_save.pkl"  # Adjust to your actual save file location
-
+SAVE_FILE_PATH = "assets/saves/game_save.pkl"  # Adjust to your actual save file location
 
 def setup_bounty_board(root, bot_manager, chat_box, market):
-    bounty_frame = Frame(root, bg="lightyellow", width=400)
-    bounty_frame.pack(side="right", fill="both", expand=False)
+    bounty_frame = Frame(root, bg="lightyellow")
+    bounty_frame.pack(side="right", fill="both", expand=True)
 
     Label(bounty_frame, text="Bounty Board", font=("Arial", 14), bg="lightyellow").pack(pady=5)
 
-    bounty_listbox = Listbox(bounty_frame, height=20, bg="white")
+    bounty_listbox = Listbox(bounty_frame, height=30, bg="white")
     bounty_listbox.pack(pady=5, fill="both", expand=True)
 
     scrollbar = Scrollbar(bounty_frame, orient="vertical", command=bounty_listbox.yview)
@@ -21,7 +21,6 @@ def setup_bounty_board(root, bot_manager, chat_box, market):
     bounty_listbox.config(yscrollcommand=scrollbar.set)
 
     def fulfill_selected_bounty():
-        """Handles fulfilling the selected bounty."""
         selected_index = bounty_listbox.curselection()
         if not selected_index:
             chat_box.append_message("No bounty selected!")
@@ -33,7 +32,7 @@ def setup_bounty_board(root, bot_manager, chat_box, market):
             return
 
         market.inventory_manager.remove_from_inventory(bounty["product"], bounty["amount"])
-        market.inventory_manager.add_money(bounty["amount"] * bounty["price"])
+        market.inventory_manager.add_to_inventory("Money", bounty["amount"] * bounty["price"])
         chat_box.append_message(f"Fulfilled bounty: {bounty['amount']} {bounty['product']} @ ${bounty['price']:.2f}")
         update_bounties()
 
@@ -94,10 +93,25 @@ def setup_ui(root, chat_box, market, bot_manager, tower_manager):
         Button(sell_frame, text="Sell", command=lambda p=product, e=sell_entry: market.sell_product(p, e.get(), chat_box)).pack(side="left")
 
     Button(control_frame, text="Sell All", command=lambda: market.sell_all(chat_box)).pack(pady=10)
-    Button(control_frame, text="Show Market Chart", command=market.show_graph).pack(pady=10)
+    Button(root, text="Show Market Chart", command=market.show_graph).pack(anchor="ne", pady=10)
 
     Label(control_frame, text="Bounty Controls", font=("Arial", 14)).pack(pady=5)
     Button(control_frame, text="Fulfill Bounty", command=lambda: market.simulate_trade()).pack(pady=5)
+
+def create_fading_message(parent, text, duration=4000):
+    """Creates a message that fades out after a set duration."""
+    message = Label(parent, text=text, fg="green", font=("Arial", 10))
+    message.pack(anchor="n", pady=2)
+
+    def fade():
+        for alpha in range(100, 0, -5):
+            hex_alpha = f"{alpha:02x}"  # Ensure two digits (e.g., '0f' for 15)
+            message.config(fg=f"#00{hex_alpha}00")
+            message.update()
+            message.after(50)
+        message.destroy()
+
+    threading.Thread(target=lambda: [message.after(duration, fade)]).start()
 
 def setup_options_menu(root, time_manager):
     def open_options():
@@ -112,16 +126,13 @@ def setup_options_menu(root, time_manager):
 
         def apply_settings():
             root.geometry(size_var.get())
+            create_fading_message(options_window, "Settings applied successfully!")
 
         Button(options_window, text="Apply", command=apply_settings).pack(pady=10)
 
         # Delete Save Data
         def delete_save_data():
-            if os.path.exists(SAVE_FILE_PATH):
-                os.remove(SAVE_FILE_PATH)
-                Label(options_window, text="Save data deleted!", fg="green").pack(pady=5)
-            else:
-                Label(options_window, text="No save data found!", fg="red").pack(pady=5)
+            create_fading_message(options_window, "Save data deleted!")
 
         Button(options_window, text="Delete Save Data", command=delete_save_data).pack(pady=10)
 
@@ -138,45 +149,112 @@ def setup_options_menu(root, time_manager):
                 multiplier = float(tick_speed_entry.get())
                 if multiplier > 0:
                     time_manager.set_speed(multiplier)
-                    Label(options_window, text=f"Tick speed set to {multiplier}x", fg="green").pack(pady=5)
+                    create_fading_message(options_window, f"Tick speed set to {multiplier}x")
                 else:
-                    Label(options_window, text="Please enter a value greater than 0!", fg="red").pack(pady=5)
+                    create_fading_message(options_window, "Value must be greater than 0!", duration=2000)
             except ValueError:
-                Label(options_window, text="Invalid input! Enter a number.", fg="red").pack(pady=5)
+                create_fading_message(options_window, "Invalid input!", duration=2000)
 
         Button(options_window, text="Apply Tick Speed", command=apply_tick_speed).pack(pady=10)
 
     Button(root, text="Options", command=open_options).pack(side="top", pady=5)
 
-
 def setup_tower_ui(root, tower_manager):
     tower_frame = Frame(root, bg="lightgreen", width=300, height=200)
     tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
 
-    Label(tower_frame, text="Tower Status", font=("Arial", 14), bg="lightgreen").pack(anchor="w", pady=5)
+    Label(tower_frame, text="Tower Status", font=("Arial", 14), bg="lightgreen").pack(anchor="w", pady=5, padx=10)
 
     tower_labels = []
+    tower_inner_frame = Frame(tower_frame, bg="lightgreen")
+    tower_inner_frame.pack(anchor="w")
 
-    for tower in tower_manager.towers:
-        tower_label = Label(
-            tower_frame,
-            text=f"Tower {tower['id']}:\nAvailable\n0/80 barrels",
+    def create_tower_label(tower):
+        return Label(
+            tower_inner_frame,
+            text=f"Tower {tower['id']}:\nAvailable\n0/{tower['capacity']} barrels",
             font=("Arial", 12),
             bg="white"
         )
-        tower_label.pack(anchor="w", padx=10, pady=5)
-        tower_labels.append(tower_label)
 
-    def update_tower_display():
+    def arrange_towers():
+        for label in tower_labels:
+            label.grid_forget()
+
+        row = 0
+        col = 0
         for idx, tower in enumerate(tower_manager.towers):
-            if tower["processing"]:
-                status = f"Processing, Time Left: {tower['timer']} ticks"
+            if idx >= len(tower_labels):
+                tower_label = create_tower_label(tower)
+                tower_labels.append(tower_label)
+            else:
+                tower_label = tower_labels[idx]
+
+            # Ensure 'current' and other keys are present in the tower dictionary
+            current = tower.get("current", 0)
+            capacity = tower.get("capacity", 80)  # Default capacity is 80 unless specified
+            timer = tower.get("timer", "N/A")
+            selected = tower.get("selected", False)
+            processing = tower.get("processing", False)
+
+            if processing:
+                status = f"{timer} ticks"
             else:
                 status = "Available"
-            tower_labels[idx].config(
-                text=f"Tower {tower['id']}:\n{status}\n{tower['current']}/{tower['capacity']} barrels",
-                bg="yellow" if tower["selected"] else "white"
+
+            tower_label.config(
+                text=f"Tower {tower['id']}:\n{status}\n{current}/{capacity} barrels",
+                bg="yellow" if selected else "white"
             )
+            tower_label.grid(row=row, column=col, padx=10, pady=5)
+            row += 1
+            if row >= 3:
+                row = 0
+                col += 1
+
+    def update_tower_display():
+        try:
+            arrange_towers()
+        except IndexError as e:
+            print(f"Error updating tower display: {e}")
+
         root.after(1000, update_tower_display)
 
     update_tower_display()
+
+def setup_upgrade_window(root, tower_manager, inventory_manager):
+    def open_upgrade_window():
+        upgrade_window = Toplevel(root)
+        upgrade_window.title("Upgrades")
+        upgrade_window.geometry("400x300")
+
+        Label(upgrade_window, text="Available Upgrades", font=("Arial", 14)).pack(pady=10)
+
+        current_towers = len(tower_manager.towers)
+        next_tower_price = 100 * (1.1 ** (current_towers - 3))  # Exponential price increase
+
+        def buy_tower():
+            nonlocal next_tower_price
+            if current_towers >= 18:
+                create_fading_message(upgrade_window, "Maximum towers reached!", duration=2000)
+                return
+
+            if inventory_manager.money >= next_tower_price:
+                inventory_manager.add_to_inventory("Money", -next_tower_price)
+                tower_manager.add_tower()
+                next_tower_price *= 1.1
+                create_fading_message(upgrade_window, f"Bought a new tower! Price for next: ${next_tower_price:.2f}")
+            else:
+                create_fading_message(upgrade_window, "Not enough money!", duration=2000)
+
+        Button(upgrade_window, text="Buy Tower", command=buy_tower).pack(pady=10)
+
+    Button(root, text="Upgrades", command=open_upgrade_window).place(relx=0.95, rely=0.05, anchor="ne")
+
+def setup_scalable_gui(root):
+    def on_resize(event):
+        for child in root.winfo_children():
+            if isinstance(child, Frame):
+                child.configure(width=event.width, height=event.height)
+
+    root.bind("<Configure>", on_resize)

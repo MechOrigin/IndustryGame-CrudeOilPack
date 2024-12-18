@@ -94,10 +94,22 @@ class TowerManager:
             self.chat_box.append_message("Invalid number of barrels entered!")
 
 
-    def add_tower(self):
-        new_tower = {"id": len(self.towers) + 1, "processing": False, "timer": 0, "capacity": 100}
-        self.towers.append(new_tower)
-        self.chat_box.append_message(f"New tower added. Total towers: {len(self.towers)}")
+    # Ensure purchased towers have correct capacity and default values, add chat message
+    def add_tower(tower_manager, capacity=80):
+        new_tower = {
+            "id": len(tower_manager.towers) + 1,
+            "current": 0,
+            "capacity": capacity,
+            "timer": 0,
+            "selected": False,
+            "processing": False
+        }
+        tower_manager.towers.append(new_tower)
+        tower_manager.chat_box.append_message(f"New tower added. Total towers: {len(tower_manager.towers)}")
+
+    # Updated buy_tower to ensure proper usage and resolve errors
+    def buy_tower(tower_manager, capacity=80):
+        tower_manager.add_tower(capacity)
 
     def update(self):
         for tower in self.towers:
@@ -116,17 +128,25 @@ class TowerManager:
     def get_state(self):
         return [{"id": tower["id"], "processing": tower["processing"], "timer": tower["timer"], "capacity": tower["capacity"]} for tower in self.towers]
 
-    def set_state(self, state):
-        # Ensure all required keys are present when loading state
-        for tower in state:
-            tower.setdefault("id", len(self.towers) + 1)
-            tower.setdefault("processing", False)
-            tower.setdefault("timer", 0)
-            tower.setdefault("capacity", 80)
-            tower.setdefault("current", 0)
-            tower.setdefault("selected", False)
-        self.towers = state
+    # Improved set_state implementation for TowerManager
+    def set_state(tower_manager, state):
+        """Load and validate the tower state."""
+        tower_manager.towers.clear()
+        for tower_data in state:
+            tower = {
+                "id": tower_data.get("id", len(tower_manager.towers) + 1),
+                "current": tower_data.get("current", 0),
+                "capacity": tower_data.get("capacity", 80),
+                "timer": tower_data.get("timer", 0),
+                "selected": tower_data.get("selected", False),
+                "processing": tower_data.get("processing", False)
+            }
+            tower_manager.towers.append(tower)
+        tower_manager.chat_box.append_message(f"State loaded successfully. Total towers: {len(tower_manager.towers)}")
 
     def load_state(self, state):
         self.towers = state
         self.chat_box.append_message("Towers restored from save.")
+
+    def buy_tower(self, capacity=80):
+        add_tower(self, capacity)
