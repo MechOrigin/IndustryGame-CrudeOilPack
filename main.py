@@ -1,5 +1,6 @@
-# main.py
-from tkinter import Tk, Label
+# Adjusted main.py imports and function calls to use UIComponents
+
+from tkinter import Tk
 from refinery.bots import BotManager
 from refinery.chat_box import ChatBox
 from refinery.game_state import GameState
@@ -7,12 +8,8 @@ from refinery.inventory_manager import InventoryManager
 from refinery.market import Market
 from refinery.time_manager import TimeManager
 from refinery.towers import TowerManager
-from refinery.ui_components import setup_inventory_ui, setup_tower_ui, setup_ui, setup_bounty_board, setup_options_menu, setup_upgrade_window
 from refinery.logger import get_logger
-import logging
-
-# Configure logging level globally
-logging.getLogger('matplotlib').setLevel(logging.WARNING)
+from refinery.ui_components import UIComponents
 
 logger = get_logger()
 
@@ -25,63 +22,31 @@ def main():
 
         chat_box = ChatBox(root)
         inventory_manager = InventoryManager()
-
-        # Add get_player_trades to inventory_manager
-        def get_player_trades():
-            return {product: 0 for product in ["Diesel", "Gasoline", "Light Hydrocarbons", "Crude Oil"]}
-
-        inventory_manager.get_player_trades = get_player_trades
-
-        # Initialize Market with bots and player influence
         market = Market(chat_box, inventory_manager)
-
-        def update_prices():
-            # Fetch player trades if available, otherwise default to no trades
-            player_trades = inventory_manager.get_player_trades() if hasattr(inventory_manager, 'get_player_trades') else {}
-            market.update_prices(player_trades)
-            root.after(market.tick_speed, update_prices)
-
-        update_prices()
-
         bot_manager = BotManager(market, chat_box)
         tower_manager = TowerManager(chat_box)
         tower_manager.link_inventory_manager(inventory_manager)
 
-        # Updated to match GameState definition
         game_state = GameState(inventory_manager, tower_manager, bot_manager)
 
+        # Load bot state
         if not game_state.load():
             chat_box.append_message("No save data found. Starting a new game!")
-
-        time_label = Label(root, text="Time Remaining: 8 ticks", font=("Arial", 14))
-        time_label.pack()
-        time_manager = TimeManager(root, time_label, inventory_manager, market, tower_manager)
-
-        # Fix the tick method in time_manager
-        def time_manager_tick():
+        else:
             try:
-                player_trades = inventory_manager.get_player_trades() if hasattr(inventory_manager, 'get_player_trades') else {}
-                market.update_prices(player_trades)
-                time_manager.tick()
+                bot_manager.load_state(game_state.bot_manager_state)
             except Exception as e:
-                print(f"Error in time_manager_tick: {e}")
+                chat_box.append_message(f"Failed to load bot manager state: {e}")
+                print(f"Bot manager state loading error: {e}")
 
-
+        time_manager = TimeManager(root, inventory_manager, market, tower_manager)
         time_manager.start()
 
-
-        setup_inventory_ui(root, market)
-        setup_tower_ui(root, tower_manager)
-        setup_ui(root, chat_box, market, bot_manager, tower_manager)
-        setup_bounty_board(root, bot_manager, chat_box, market)
-        setup_options_menu(root, time_manager)
-        setup_upgrade_window(root, tower_manager, inventory_manager)
-
-        def update_towers():
-            tower_manager.update()
-            root.after(1000, update_towers)
-
-        update_towers()
+        UIComponents.setup_inventory_ui(root, inventory_manager)
+        UIComponents.setup_tower_ui(root, tower_manager, market)
+        UIComponents.setup_ui(root, chat_box, market, bot_manager, tower_manager)
+        UIComponents.setup_bounty_board(root, bot_manager, chat_box, market)
+        UIComponents.setup_options_menu(root, time_manager, inventory_manager)
 
         def save_periodically():
             game_state.save()
@@ -90,6 +55,13 @@ def main():
             root.after(60000, save_periodically)
 
         save_periodically()
+
+        def update_towers():
+            tower_manager.update()
+            root.after(1000, update_towers)
+
+        update_towers()
+
         root.mainloop()
 
     except Exception as e:
@@ -97,7 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# TODO: Fix a bunch of things....
-
-# TODO: Fix bounty board; not removing bountry after "purchasing"

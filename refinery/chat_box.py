@@ -24,3 +24,12 @@ class ChatBox:
         input_text = self.input_widget.get("1.0", "end").strip()
         self.input_widget.delete("1.0", "end")
         return input_text
+
+    def clear_chat(self):
+        """Clears all messages from the chat box."""
+        self.text_widget.delete("1.0", END)
+
+    def add_system_message(self, message):
+        """Adds a system message with distinct formatting."""
+        self.text_widget.insert(END, f"[SYSTEM]: {message}\n")
+        self.text_widget.see(END)

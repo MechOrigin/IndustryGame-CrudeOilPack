@@ -11,4 +11,5 @@ logging.basicConfig(
 )
 
 def get_logger():
+    """Returns a configured logger for the game."""
     return logging.getLogger("CrudeOilGame")

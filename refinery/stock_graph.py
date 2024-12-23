@@ -1,12 +1,9 @@
 # stock_graph.py
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import matplotlib
 import logging
 
-# Suppress matplotlib debug logs
-matplotlib_logger = logging.getLogger('matplotlib')
-matplotlib_logger.setLevel(logging.WARNING)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)  # Suppress matplotlib debug logs
 
 class StockGraph:
     def __init__(self, market):
@@ -27,10 +24,31 @@ class StockGraph:
             ax.set_title("Market Prices Over Time")
             ax.set_xlabel("Time")
             ax.set_ylabel("Prices")
-            for product, prices in price_history.items():
+
+            # Ensure deterministic rendering of prices
+            for product, prices in sorted(price_history.items()):
                 if len(prices) > 0:
                     ax.plot(time_history, prices, label=product)
             ax.legend()
 
-        ani = FuncAnimation(fig, update, interval=1000, cache_frame_data=False)
+        ani = FuncAnimation(fig, update, interval=1000)
         plt.show()
+
+    def save_graph(self, time_history, price_history, file_path="market_prices.png"):
+        """Saves the current market trends as a static image."""
+        if not time_history or not any(price_history.values()):
+            print("No market data available to save.")
+            return
+
+        fig, ax = plt.subplots()
+        ax.set_title("Market Prices Over Time")
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Prices")
+
+        for product, prices in sorted(price_history.items()):
+            if len(prices) > 0:
+                ax.plot(time_history, prices, label=product)
+        ax.legend()
+
+        fig.savefig(file_path)
+        print(f"Market trends saved as {file_path}.")

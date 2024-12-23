@@ -1,135 +1,172 @@
-from datetime import datetime
-from refinery.stock_graph import StockGraph
-import matplotlib
-import logging
+from tkinter import Frame, IntVar, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
+import threading
 import random
+from matplotlib import pyplot as plt
+import logging
 
 # Suppress matplotlib debug logs
-matplotlib_logger = logging.getLogger('matplotlib')
-matplotlib_logger.setLevel(logging.WARNING)
-
-class MarketBot:
-    def __init__(self, id, money=10000):
-        self.id = id
-        self.money = money
-        self.inventory = {
-            "Diesel": 100,
-            "Gasoline": 100,
-            "Light Hydrocarbons": 100,
-            "Crude Oil": 100,
-        }
-
-    def trade(self, market_prices):
-        """Simulates the bot's trading based on supply and demand."""
-        for product, price in market_prices.items():
-            if price > 0:  # Prevent trading at non-positive prices
-                # Selling logic
-                if self.inventory[product] > 10:  # Ensure enough inventory to sell
-                    max_sell_quantity = min(10, self.inventory[product])
-                    quantity = random.randint(1, max_sell_quantity)
-                    self.inventory[product] -= quantity
-                    self.money += quantity * price
-                # Buying logic
-                elif self.money >= price:  # Ensure sufficient funds to buy
-                    max_buy_quantity = min(10, int(self.money / price))
-                    if max_buy_quantity > 0:  # Ensure valid range for randint
-                        quantity = random.randint(1, max_buy_quantity)
-                        total_cost = quantity * price
-                        self.inventory[product] += quantity
-                        self.money -= total_cost
-
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
+logging.getLogger('PIL').setLevel(logging.WARNING)
 
 class Market:
     def __init__(self, chat_box, inventory_manager):
         self.chat_box = chat_box
         self.inventory_manager = inventory_manager
         self.prices = {
-            "Diesel": 10.5,
-            "Gasoline": 8.75,
-            "Light Hydrocarbons": 5.0,
             "Crude Oil": 3.0,
+            "Diesel": 8.0,
+            "Gas": 5.0,
+            "Light Hydrocarbons": 6.0
         }
-        self.price_history = {product: [] for product in self.prices}
+        self.bots = self.initialize_bots(200)
+        self.price_history = {key: [] for key in self.prices}
         self.time_history = []
-        self.tick_speed = 1000
-        self.stock_graph = StockGraph(self)
-        self.bots = [MarketBot(i) for i in range(200)]
-        self.player_influence = 0.33  # Player has 33% influence compared to bots
+        self.graph_initialized = False
+        self.fig = None
+        self.ax = None
+        self.external_supply = {key: 500 for key in self.prices}  # External supply injection
+        self.price_limits = {
+            "Crude Oil": (0.0, 6.0),
+            "Diesel": (5.0, 11.0),
+            "Gas": (2.0, 8.0),
+            "Light Hydrocarbons": (3.0, 9.0)
+        }
+        self.recent_sales = {key: 0 for key in self.prices}  # Track recent sales
 
-    def set_tick_speed(self, speed_multiplier):
-        """Adjust market tick speed."""
-        self.tick_speed = int(1000 / speed_multiplier)
+    def initialize_bots(self, num_bots):
+        bots = []
+        materials = list(self.prices.keys())
+        for i in range(num_bots):
+            specialization = materials[i % len(materials)]  # Assign specialization in a round-robin fashion
+            inventory = {specialization: 1000, "Money": 1000}
+            bots.append({"id": i, "inventory": inventory, "specialization": specialization})
+        return bots
 
-    def update_prices(self, player_trades):
-        """Simulates market updates with bots and player influence."""
-        demand = {product: 0 for product in self.prices}
-        supply = {product: 0 for product in self.prices}
-
-        # Collect supply and demand from bots
+    def simulate_market(self):
         for bot in self.bots:
-            bot.trade(self.prices)
-            for product, quantity in bot.inventory.items():
-                if bot.money > self.prices[product]:
-                    demand[product] += quantity
-                supply[product] += quantity
+            specialization = bot["specialization"]
+            price = self.prices[specialization]
+            if random.random() < 0.5:  # 50% chance to buy or sell
+                if "Money" in bot["inventory"] and bot["inventory"].get("Money", 0) >= price:
+                    quantity = random.randint(1, 10)
+                    cost = quantity * price
+                    if bot["inventory"]["Money"] >= cost:
+                        bot["inventory"]["Money"] -= cost
+                        bot["inventory"].setdefault(specialization, 0)
+                        bot["inventory"][specialization] += quantity
+                elif bot["inventory"].get(specialization, 0) > 0:
+                    quantity = random.randint(1, 10)
+                    revenue = quantity * price
+                    bot["inventory"].setdefault("Money", 0)
+                    bot["inventory"]["Money"] += revenue
+                    bot["inventory"][specialization] -= quantity
+                    self.recent_sales[specialization] += quantity  # Track sales
 
-        # Incorporate player trades with a handicap
-        for product, player_quantity in player_trades.items():
-            if player_quantity > 0:  # Player buying
-                demand[product] += player_quantity * self.player_influence
-            else:  # Player selling
-                supply[product] -= player_quantity * self.player_influence
+    def inject_resources(self):
+        """Injects external supply into the market periodically to stabilize resources."""
+        for product in self.external_supply:
+            self.external_supply[product] += random.randint(50, 100)
 
-        # Update prices based on supply and demand
+    def adjust_prices(self):
+        supply = {key: self.external_supply.get(key, 0) for key in self.prices}
+        demand = {key: 0 for key in self.prices}
+
+        control_price = random.uniform(0.66, 1.33)
+
+        for bot in self.bots:
+            specialization = bot["specialization"]
+            supply[specialization] += bot["inventory"].get(specialization, 0)
+            demand[specialization] += random.randint(100, 175)  # More significant demand simulation
+
+        # Incorporate recent sales into demand
+        for product in self.recent_sales:
+            demand[product] += self.recent_sales[product]
+
         for product in self.prices:
-            if supply[product] > demand[product]:
-                self.prices[product] = max(0, self.prices[product] - 0.5)
-            elif demand[product] > supply[product]:
-                self.prices[product] += 0.5
-            self.prices[product] = round(self.prices[product], 2)
+            if demand[product] > supply[product]:
+                self.prices[product] = round(self.prices[product] * control_price, 3)  # Controlled price increase
+            elif supply[product] > demand[product]:
+                self.prices[product] = round(self.prices[product] * control_price, 3)  # Controlled price decrease
 
-        # Update price history
-        self.time_history.append(datetime.now())
+        # Apply price limits
+        for product, (min_price, max_price) in self.price_limits.items():
+            self.prices[product] = max(min(self.prices[product], max_price), min_price)
+
+        # Reset recent sales after adjusting prices
+        self.recent_sales = {key: 0 for key in self.prices}
+
+        # Record price changes
+        self.time_history.append(len(self.time_history))
         for product in self.prices:
             self.price_history[product].append(self.prices[product])
 
-        # Limit history to last 100 entries
-        if len(self.time_history) > 100:
-            self.time_history.pop(0)
-            for product in self.price_history:
-                self.price_history[product].pop(0)
-
     def show_graph(self):
-        self.stock_graph.display(self.time_history, self.price_history)
+        if not self.graph_initialized:
+            self.fig, self.ax = plt.subplots(figsize=(10, 5))
+            self.graph_initialized = True
+            plt.ion()
 
-    def sell_product(self, product, amount):
-        try:
-            amount = int(amount)
-            if product not in self.prices:
-                self.chat_box.append_message(f"{product} is not a valid product.")
-                return
-            if self.inventory_manager.get_inventory().get(product, 0) < amount:
-                self.chat_box.append_message(f"Not enough {product} in inventory!")
-                return
+        def on_close(event):
+            self.graph_initialized = False  # Reset flag when the chart is closed
 
-            total_price = amount * self.prices[product]
-            self.inventory_manager.add_to_inventory(product, -amount)
-            self.inventory_manager.add_to_inventory("Money", total_price)
-            self.chat_box.append_message(f"Sold {amount} {product} for ${total_price:.2f}.")
-        except ValueError:
-            self.chat_box.append_message("Invalid amount entered for selling.")
+        self.fig.canvas.mpl_connect('close_event', on_close)  # Handle close event
 
-    def sell_all(self):
-        total_sold = 0
-        for product, quantity in self.inventory_manager.get_inventory().items():
-            if quantity > 0:
-                price = self.prices.get(product, 0)
-                self.inventory_manager.add_to_inventory(product, -quantity)
-                self.inventory_manager.add_to_inventory("Money", quantity * price)
-                total_sold += quantity * price
-                self.chat_box.append_message(f"Sold {quantity} {product} for ${quantity * price:.2f}")
+        self.ax.clear()
+        for product, history in self.price_history.items():
+            self.ax.plot(self.time_history, history, label=product)
 
-        if total_sold == 0:
-            self.chat_box.append_message("No items to sell.")
+        self.ax.set_title("Market Prices Over Time")
+        self.ax.set_xlabel("Time (ticks)")
+        self.ax.set_ylabel("Price")
+        self.ax.legend()
+        self.ax.grid()
+        plt.show(block=False)  # Ensure the graph displays properly
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+
+    def sell_product(self, product, quantity, chat_box):
+        quantity = int(quantity)
+        if quantity <= 0:
+            chat_box.append_message("Invalid quantity.")
+            return
+
+        if product not in self.prices:
+            chat_box.append_message(f"{product} is not a valid product.")
+            return
+
+        inventory = self.inventory_manager.get_inventory()
+        if inventory.get(product, 0) >= quantity:  # Correctly check inventory
+            self.inventory_manager.remove_from_inventory(product, quantity)
+            self.inventory_manager.add_to_inventory("Money", quantity * self.prices[product])
+            self.recent_sales[product] += quantity
+            chat_box.append_message(f"Sold {quantity} {product} for ${quantity * self.prices[product]:.2f}.")
         else:
-            self.chat_box.append_message(f"Total earnings: ${total_sold:.2f}")
+            chat_box.append_message(f"Not enough {product} to sell.")
+
+
+    def sell_all(self, chat_box):
+        """Automatically sells all products in inventory."""
+        inventory = self.inventory_manager.get_inventory()
+        for product, quantity in inventory.items():
+            if product in self.prices and quantity > 0:
+                price = self.prices[product]
+                self.inventory_manager.remove_from_inventory(product, quantity)
+                self.inventory_manager.add_to_inventory("Money", quantity * price)
+                self.recent_sales[product] += quantity  # Track sales
+                chat_box.append_message(f"Sold {quantity} {product} for ${quantity * price:.2f}.")
+
+    def update_prices(self, *args):
+        self.simulate_market()
+        self.inject_resources()
+        self.adjust_prices()
+        self.chat_box.append_message(f"Updated market prices: {self.prices}")
+        if self.graph_initialized:
+            self.show_graph()
+
+    def simulate_trade(self):
+        """Simulates a single trading cycle."""
+        self.simulate_market()
+        self.inject_resources()
+        self.adjust_prices()
+        self.chat_box.append_message("Market trade cycle completed.")
