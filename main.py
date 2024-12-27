@@ -1,6 +1,7 @@
 # Adjusted main.py imports and function calls to use UIComponents
 
 from tkinter import Tk
+from tkinter.ttk import Frame
 from refinery.bots import BotManager
 from refinery.chat_box import ChatBox
 from refinery.game_state import GameState
@@ -29,6 +30,10 @@ def main():
 
         game_state = GameState(inventory_manager, tower_manager, bot_manager)
 
+        tower_labels = {}  # Dictionary to store tower labels
+        tower_frame = Frame(root, bg="lightgreen", width=300, height=200)  # Tower frame
+        tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
+        
         # Load bot state
         if not game_state.load():
             chat_box.append_message("No save data found. Starting a new game!")
@@ -43,8 +48,9 @@ def main():
         time_manager.start()
 
         UIComponents.setup_inventory_ui(root, inventory_manager)
-        UIComponents.setup_tower_ui(root, tower_manager, market)
-        UIComponents.setup_ui(root, chat_box, market, bot_manager, tower_manager)
+        UIComponents.setup_tower_ui(root, tower_manager, market, tower_labels)
+        # Call setup_ui with all required arguments
+        UIComponents.setup_ui(root, chat_box, market, bot_manager, tower_manager, tower_frame, tower_labels)
         UIComponents.setup_bounty_board(root, bot_manager, chat_box, market)
         UIComponents.setup_options_menu(root, time_manager, inventory_manager)
 
@@ -56,9 +62,14 @@ def main():
 
         save_periodically()
 
+        # Define the update_towers function to include tower_labels
         def update_towers():
-            tower_manager.update()
+            tower_manager.update(tower_labels)  # Pass tower_labels to update
             root.after(1000, update_towers)
+
+        # Call tower_manager.process_all with tower_labels in relevant UI logic
+        def process_all_crude_oil():
+            tower_manager.process_all(tower_labels)
 
         update_towers()
 

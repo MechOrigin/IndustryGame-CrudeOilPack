@@ -1,4 +1,9 @@
 # towers.py
+
+
+from tkinter.ttk import Label
+
+
 class TowerManager:
     def __init__(self, chat_box):
         self.chat_box = chat_box
@@ -22,12 +27,19 @@ class TowerManager:
         """Links the inventory manager to allow interactions with inventory."""
         self.inventory_manager = inventory_manager
 
-    def add_tower(self):
+    def add_tower(self, tower_labels, tower_inner_frame):
+        if len(self.towers) >= 15:  # Max 15 towers
+            self.chat_box.append_message("Maximum number of towers reached!")
+            return
+
         new_tower = self._create_default_tower(len(self.towers) + 1)
         self.towers.append(new_tower)
         self.chat_box.append_message(f"Added new tower: Tower {new_tower['id']}")
 
-    def process(self, tower_id, barrels):
+        # Update GUI dynamically
+        self._create_tower_label(new_tower, tower_labels, tower_inner_frame)
+
+    def process(self, tower_id, barrels, label):
         for tower in self.towers:
             if tower["id"] == tower_id:
                 if tower["processing"]:
@@ -41,9 +53,13 @@ class TowerManager:
                 tower["current"] += barrels
                 tower["processing"] = True
                 tower["timer"] = 8
+                label.config(
+                    text=f"Tower {tower_id}\nStatus: Processing\nProcessing: {tower['current']}/{tower['capacity']} barrels\nTimer: {tower['timer']}",
+                    bg="yellow"
+                )
                 self.chat_box.append_message(f"Tower {tower_id} started processing {barrels} barrels.")
 
-    def process_all(self):
+    def process_all(self, tower_labels):
         """Processes all available crude oil in all towers."""
         crude_oil_balance = self.inventory_manager.get_inventory().get("Crude Oil", 0)
         total_processed = 0
@@ -64,10 +80,19 @@ class TowerManager:
                 crude_oil_balance -= to_add
                 total_processed += to_add
 
+                # Update the corresponding label
+                label = tower_labels[tower["id"]]
+                label.config(
+                    text=f"Tower {tower['id']}\nStatus: Processing\nProcessing: {tower['current']}/{tower['capacity']} barrels\nTimer: {tower['timer']}",
+                    bg="yellow"
+                )
+
         self.inventory_manager.add_to_inventory("Crude Oil", -total_processed)
         self.chat_box.append_message(f"Processing {total_processed} barrels of Crude Oil across towers.")
 
-    def update(self):
+
+    def update(self, tower_labels):
+        """Updates the processing status of all towers."""
         for tower in self.towers:
             if tower["processing"]:
                 tower["timer"] -= 1
@@ -75,11 +100,20 @@ class TowerManager:
                     tower["processing"] = False
                     processed = tower["current"]
                     tower["current"] = 0
+
                     if self.inventory_manager:
                         self.inventory_manager.add_to_inventory("Diesel", processed // 2)
                         self.inventory_manager.add_to_inventory("Gasoline", processed // 4)
                         self.inventory_manager.add_to_inventory("Light Hydrocarbons", processed // 4)
+
                     self.chat_box.append_message(f"Tower {tower['id']} completed processing {processed} barrels.")
+
+                    # Update the corresponding label
+                    label = tower_labels[tower["id"]]
+                    label.config(
+                        text=f"Tower {tower['id']}\nStatus: Available\nProcessing: 0/{tower['capacity']} barrels\nTimer: N/A",
+                        bg="white"
+                    )
 
     def distribute_outputs(self, processed):
         """Distributes processed barrels into multiple product categories."""
@@ -108,3 +142,18 @@ class TowerManager:
             for i, tower_data in enumerate(state)
         ]
         self.chat_box.append_message("Towers state has been restored.")
+
+    def _create_tower_label(self, tower, tower_labels, tower_inner_frame):
+        """Creates a new tower label in the GUI."""
+        label = Label(
+            tower_inner_frame,
+            text=f"Tower {tower['id']}\nStatus: Available\nProcessing: 0/{tower['capacity']} barrels\nTimer: N/A",
+            font=("Arial", 10),
+            bg="white",
+            width=25,
+            height=6,
+            relief="solid",
+            justify="center"
+        )
+        label.grid(row=(tower['id'] - 1) // 3, column=(tower['id'] - 1) % 3, padx=10, pady=10)
+        tower_labels[tower["id"]] = label

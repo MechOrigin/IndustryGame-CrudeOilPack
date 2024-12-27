@@ -49,62 +49,46 @@ class UIComponents:
         bounty_tick()
 
     @staticmethod
-    def setup_tower_ui(root, tower_manager, market):
+    def setup_tower_ui(root, tower_manager, market, tower_labels):
         tower_frame = Frame(root, bg="lightgreen", width=300, height=200)
         tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
 
         Label(tower_frame, text="Towers", font=("Arial", 14), bg="lightgreen").pack(anchor="w", pady=5, padx=10)
 
-        tower_labels = []
         tower_inner_frame = Frame(tower_frame, bg="lightgreen")
         tower_inner_frame.pack(anchor="w")
 
         def create_tower_label(tower):
-            processing_status = "Processing" if tower.get("processing", False) else "Available"
-            timer = tower.get("timer", "N/A")
-            current_processing = tower.get("current_processing", 0)
-            return Label(
+            # Create a label for the tower and store it in tower_labels
+            label = Label(
                 tower_inner_frame,
-                text=f"Tower {tower['id']}\nStatus: {processing_status}\nProcessing: {current_processing}/{tower['capacity']} barrels\nTimer: {timer}",
+                text=f"Tower {tower['id']}\nStatus: Available\nProcessing: 0/{tower['capacity']} barrels\nTimer: N/A",
                 font=("Arial", 10),
-                bg="yellow" if tower.get("processing", False) else "white",
+                bg="white",
                 width=25,
                 height=6,
                 relief="solid",
                 justify="center"
             )
+            label.grid(row=(tower['id'] - 1) // 3, column=(tower['id'] - 1) % 3, padx=10, pady=10)
+            tower_labels[tower["id"]] = label  # Store the Label widget in tower_labels
+
+        # Create labels for all towers
+        for tower in tower_manager.towers:
+            create_tower_label(tower)
 
         def arrange_towers():
-            for label in tower_labels:
-                label.grid_forget()
+            # Rearrange the tower labels
+            for tower_id, label in tower_labels.items():
+                if isinstance(label, Label):  # Ensure it’s a Label widget
+                    label.grid_forget()
 
             for idx, tower in enumerate(tower_manager.towers):
-                if idx >= len(tower_labels):
-                    tower_label = create_tower_label(tower)
-                    tower_labels.append(tower_label)
-                else:
-                    tower_label = tower_labels[idx]
-
-                col, row = divmod(idx, 3)  # 3 towers per row, horizontal arrangement
-                tower_label.grid(row=row, column=col, padx=10, pady=10)
-
-        def update_tower_display():
-            for idx, tower in enumerate(tower_manager.towers):
-                if idx < len(tower_labels):
-                    label = tower_labels[idx]
-                    processing_status = "Processing" if tower.get("processing", False) else "Available"
-                    timer = tower.get("timer", "N/A")
-                    current_processing = tower.get("current_processing", 0)
-                    label.config(
-                        text=f"Tower {tower['id']}\nStatus: {processing_status}\nProcessing: {current_processing}/{tower['capacity']} barrels\nTimer: {timer}",
-                        bg="yellow" if tower.get("processing", False) else "white"
-                    )
-                elif idx >= len(tower_labels):
-                    arrange_towers()  # Re-arrange if new towers are added
-            root.after(1000, update_tower_display)
+                label = tower_labels[tower["id"]]
+                label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)
 
         arrange_towers()
-        update_tower_display()
+
 
     @staticmethod
     def create_fading_message(parent, text, color, duration=3000):
@@ -190,18 +174,13 @@ class UIComponents:
         update_inventory_display(inventory_manager.get_inventory())
 
     @staticmethod
-    def setup_ui(root, chat_box, market, bot_manager, tower_manager):
+    def setup_ui(root, chat_box, market, bot_manager, tower_manager, tower_frame, tower_labels):
+        # Processing Controls
         control_frame = Frame(root)
         control_frame.pack(side="left", fill="y")
 
-        # Processing Controls
         Label(control_frame, text="Processing Controls", font=("Arial", 14)).pack(pady=5)
-        Button(control_frame, text="Process All Crude Oil", command=tower_manager.process_all).pack(pady=5)
-
-        Label(control_frame, text="Enter Barrels to Process:").pack(pady=2)
-        process_entry = Entry(control_frame)
-        process_entry.pack(pady=5)
-        Button(control_frame, text="Process", command=lambda: tower_manager.process_specific(process_entry.get())).pack(pady=5)
+        Button(control_frame, text="Process All Crude Oil", command=lambda: tower_manager.process_all(tower_labels)).pack(pady=5)
 
         # Selling Controls
         Label(control_frame, text="Selling Controls", font=("Arial", 14)).pack(pady=5)
@@ -215,11 +194,12 @@ class UIComponents:
 
         Button(control_frame, text="Sell All", command=lambda: market.sell_all(chat_box)).pack(pady=10)
 
-        # Market Chart Button
-        Button(root, text="Show Market Chart", command=market.show_graph).pack(anchor="ne", pady=10)
+        # Setup Towers
+        UIComponents.setup_tower_ui(root, tower_manager, market, tower_labels)
 
-        # Upgrades Button
+        # Upgrades
         UIComponents.setup_upgrade_window(root, market, tower_manager)
+
 
     @staticmethod
     def setup_options_menu(root, time_manager, inventory_manager):
