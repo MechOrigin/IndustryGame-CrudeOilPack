@@ -10,7 +10,6 @@ class InventoryManager:
             self.money += amount
         else:
             self.inventory[item] = self.inventory.get(item, 0) + amount
-
         self.trigger_update()
 
     def remove_from_inventory(self, item, amount):

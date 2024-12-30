@@ -18,6 +18,7 @@ class Bot:
                     self.money += quantity * price
                     self.inventory[product] -= quantity
 
+
 class BotManager:
     def __init__(self, market, chat_box):
         self.bots = [Bot(f"Bot {i+1}", market) for i in range(200)]

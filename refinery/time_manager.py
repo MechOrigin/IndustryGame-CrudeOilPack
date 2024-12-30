@@ -2,12 +2,13 @@
 from tkinter import Label
 
 class TimeManager:
-    def __init__(self, root, inventory_manager, market, tower_manager):
+    def __init__(self, root, inventory_manager, market, tower_manager, tower_labels):
         self.root = root
         self.inventory_manager = inventory_manager
         self.market = market
         self.tower_manager = tower_manager
-        self.timer = 8  # Initialize with 300 ticks for a quarter
+        self.tower_labels = tower_labels
+        self.timer = 8  # Initialize with 8 ticks for testing
         self.tick_speed = 1000  # Default tick speed (1 second per tick)
         self.label = Label(root, text=f"Time Remaining: {self.timer} ticks", font=("Arial", 14))
         self.label.pack()
@@ -27,7 +28,7 @@ class TimeManager:
                 self.timer -= 1
                 self.update_label()
                 self.market.update_prices(self.inventory_manager.get_player_trades())
-                self.tower_manager.update()
+                self.tower_manager.update(self.tower_labels)
             else:
                 self.end_quarter()
         except Exception as e:

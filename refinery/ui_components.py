@@ -1,4 +1,5 @@
-from tkinter import Frame, IntVar, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
+# ui_components.py
+from tkinter import Frame, Label, Listbox, Scrollbar, Button, Entry, Toplevel, OptionMenu, StringVar
 import threading
 import time
 
@@ -49,19 +50,15 @@ class UIComponents:
         bounty_tick()
 
     @staticmethod
-    def setup_tower_ui(root, tower_manager, market, tower_labels):
-        tower_frame = Frame(root, bg="lightgreen", width=300, height=200)
-        tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
-
+    def setup_tower_ui(tower_frame, tower_manager, market, tower_labels):
         Label(tower_frame, text="Towers", font=("Arial", 14), bg="lightgreen").pack(anchor="w", pady=5, padx=10)
 
-        tower_inner_frame = Frame(tower_frame, bg="lightgreen")
-        tower_inner_frame.pack(anchor="w")
+        tower_frame = Frame(tower_frame, bg="lightgreen", width=300, height=200)
+        tower_frame.pack(side="top", anchor="nw", pady=10, padx=10)
 
         def create_tower_label(tower):
-            # Create a label for the tower and store it in tower_labels
             label = Label(
-                tower_inner_frame,
+                tower_frame,
                 text=f"Tower {tower['id']}\nStatus: Available\nProcessing: 0/{tower['capacity']} barrels\nTimer: N/A",
                 font=("Arial", 10),
                 bg="white",
@@ -71,24 +68,27 @@ class UIComponents:
                 justify="center"
             )
             label.grid(row=(tower['id'] - 1) // 3, column=(tower['id'] - 1) % 3, padx=10, pady=10)
-            tower_labels[tower["id"]] = label  # Store the Label widget in tower_labels
+            tower_labels[tower["id"]] = label
 
-        # Create labels for all towers
         for tower in tower_manager.towers:
             create_tower_label(tower)
 
-        def arrange_towers():
-            # Rearrange the tower labels
+        def update_tower_labels():
             for tower_id, label in tower_labels.items():
-                if isinstance(label, Label):  # Ensure it’s a Label widget
-                    label.grid_forget()
+                tower = next((t for t in tower_manager.towers if t["id"] == tower_id), None)
+                if tower:
+                    if tower["processing"]:
+                        label.config(
+                            text=f"Tower {tower['id']}\nStatus: Processing\nProcessing: {tower['current']}/{tower['capacity']} barrels\nTimer: {tower['timer']}",
+                            bg="yellow"
+                        )
+                    else:
+                        label.config(
+                            text=f"Tower {tower['id']}\nStatus: Available\nProcessing: 0/{tower['capacity']} barrels\nTimer: N/A",
+                            bg="white"
+                        )
 
-            for idx, tower in enumerate(tower_manager.towers):
-                label = tower_labels[tower["id"]]
-                label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)
-
-        arrange_towers()
-
+        tower_manager.update_tower_labels = update_tower_labels
 
     @staticmethod
     def create_fading_message(parent, text, color, duration=3000):
@@ -110,14 +110,13 @@ class UIComponents:
 
             Label(upgrade_window, text="Available Upgrades", font=("Arial", 14)).pack(pady=10)
 
-            # Add Tower Upgrade
             current_towers = len(tower_manager.towers)
-            next_tower_price = 100 * (1.1 ** (current_towers - 3))  # Exponential price increase
+            next_tower_price = 100 * (1.1 ** (current_towers - 3))
 
             def buy_tower():
                 nonlocal next_tower_price
                 current_money = market.inventory_manager.get_inventory().get("Money", 0)
-                if current_towers >= 21:  # Max 21 towers
+                if current_towers >= 21:
                     UIComponents.create_fading_message(upgrade_window, "Maximum towers reached!", "red")
                     return
 
@@ -132,10 +131,9 @@ class UIComponents:
             Label(upgrade_window, text=f"Next Tower Price: ${next_tower_price:.2f}", font=("Arial", 12)).pack(pady=5)
             Button(upgrade_window, text="Buy Tower", command=buy_tower).pack(pady=10)
 
-            # Upgrade Capacity
             def upgrade_capacity():
                 current_money = market.inventory_manager.get_inventory().get("Money", 0)
-                upgrade_cost = 50  # Cost per +10 barrels
+                upgrade_cost = 50
                 if current_money >= upgrade_cost:
                     for tower in tower_manager.towers:
                         if tower["capacity"] < 200:
@@ -151,9 +149,6 @@ class UIComponents:
             Button(upgrade_window, text="Upgrade Capacity (+10 barrels)", command=upgrade_capacity).pack(pady=10)
 
         Button(root, text="Upgrades", command=open_upgrade_window).pack(side="top", anchor="ne", padx=10, pady=5)
-
-
-        # TODO: chatgpt limit
 
     @staticmethod
     def setup_inventory_ui(root, inventory_manager):
@@ -174,15 +169,13 @@ class UIComponents:
         update_inventory_display(inventory_manager.get_inventory())
 
     @staticmethod
-    def setup_ui(root, chat_box, market, bot_manager, tower_manager, tower_frame, tower_labels):
-        # Processing Controls
+    def setup_ui(root, chat_box, market, bot_manager, tower_manager, tower_labels):
         control_frame = Frame(root)
         control_frame.pack(side="left", fill="y")
 
         Label(control_frame, text="Processing Controls", font=("Arial", 14)).pack(pady=5)
-        Button(control_frame, text="Process All Crude Oil", command=lambda: tower_manager.process_all(tower_labels)).pack(pady=5)
+        Button(control_frame, text="Process All Crude Oil", command=lambda: tower_manager.process_all()).pack(pady=5)
 
-        # Selling Controls
         Label(control_frame, text="Selling Controls", font=("Arial", 14)).pack(pady=5)
         for product in market.prices.keys():
             sell_frame = Frame(control_frame)
@@ -193,13 +186,8 @@ class UIComponents:
             Button(sell_frame, text="Sell", command=lambda p=product, e=sell_entry: market.sell_product(p, e.get(), chat_box)).pack(side="left")
 
         Button(control_frame, text="Sell All", command=lambda: market.sell_all(chat_box)).pack(pady=10)
-
-        # Setup Towers
         UIComponents.setup_tower_ui(root, tower_manager, market, tower_labels)
-
-        # Upgrades
         UIComponents.setup_upgrade_window(root, market, tower_manager)
-
 
     @staticmethod
     def setup_options_menu(root, time_manager, inventory_manager):
@@ -208,7 +196,6 @@ class UIComponents:
             options_window.title("Options")
             options_window.geometry("300x400")
 
-            # Window Size Options
             Label(options_window, text="Window Size:").pack(pady=5)
             size_var = StringVar(value="1024x768")
             OptionMenu(options_window, size_var, "800x600", "1024x768", "1280x720").pack(pady=5)
@@ -219,7 +206,6 @@ class UIComponents:
 
             Button(options_window, text="Apply", command=apply_settings).pack(pady=10)
 
-            # Tick Speed Options
             Label(options_window, text="Tick Speed:").pack(pady=5)
             tick_speed_entry = Entry(options_window)
             tick_speed_entry.pack(pady=5)
@@ -237,7 +223,6 @@ class UIComponents:
 
             Button(options_window, text="Apply Tick Speed", command=apply_tick_speed).pack(pady=10)
 
-            # Reset Inventory
             Label(options_window, text="Reset Inventory:").pack(pady=5)
 
             def reset_inventory():
@@ -246,5 +231,4 @@ class UIComponents:
 
             Button(options_window, text="Reset Inventory", command=reset_inventory).pack(pady=10)
 
-        # Add the Options button to the main UI
         Button(root, text="Options", command=open_options).pack(side="top", pady=5)

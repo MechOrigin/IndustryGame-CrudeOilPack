@@ -14306,3 +14306,57 @@ AttributeError: 'Market' object has no attribute 'show_graph'
 2024-12-22 13:52:04,504 [DEBUG]: STREAM b'pHYs' 57 9
 2024-12-22 13:52:04,505 [DEBUG]: STREAM b'IDAT' 78 364
 2024-12-22 13:52:39,205 [INFO]: Game state saved.
+2024-12-28 13:20:52,591 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:20:53,881 [INFO]: Game state saved.
+2024-12-28 13:27:14,851 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:27:15,553 [INFO]: Game state saved.
+2024-12-28 13:32:11,664 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:32:12,330 [ERROR]: An unexpected error occurred: TimeManager.__init__() missing 1 required positional argument: 'tower_labels'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 37, in main
+    time_manager = TimeManager(root, inventory_manager, market, tower_manager)
+TypeError: TimeManager.__init__() missing 1 required positional argument: 'tower_labels'
+2024-12-28 13:33:04,909 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:33:05,364 [ERROR]: An unexpected error occurred: TimeManager.__init__() missing 1 required positional argument: 'tower_labels'
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 37, in main
+    time_manager = TimeManager(root, inventory_manager, market, tower_manager)
+TypeError: TimeManager.__init__() missing 1 required positional argument: 'tower_labels'
+2024-12-28 13:33:51,213 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:33:51,578 [ERROR]: An unexpected error occurred: local variable 'tower_labels' referenced before assignment
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 37, in main
+    time_manager = TimeManager(root, inventory_manager, market, tower_manager, tower_labels)
+UnboundLocalError: local variable 'tower_labels' referenced before assignment
+2024-12-28 13:40:32,730 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 13:40:33,408 [INFO]: Game state saved.
+2024-12-28 13:41:33,421 [INFO]: Game state saved.
+2024-12-28 13:42:33,442 [INFO]: Game state saved.
+2024-12-28 13:43:33,459 [INFO]: Game state saved.
+2024-12-28 13:44:33,471 [INFO]: Game state saved.
+2024-12-28 13:45:33,487 [INFO]: Game state saved.
+2024-12-28 13:46:33,504 [INFO]: Game state saved.
+2024-12-28 13:47:33,518 [INFO]: Game state saved.
+2024-12-28 13:48:33,533 [INFO]: Game state saved.
+2024-12-28 13:49:33,542 [INFO]: Game state saved.
+2024-12-28 13:50:33,550 [INFO]: Game state saved.
+2024-12-28 13:51:33,567 [INFO]: Game state saved.
+2024-12-28 13:52:33,578 [INFO]: Game state saved.
+2024-12-28 13:53:33,590 [INFO]: Game state saved.
+2024-12-28 19:29:55,292 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 19:29:55,871 [INFO]: Game state saved.
+2024-12-28 19:30:06,479 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 19:30:07,032 [INFO]: Game state saved.
+2024-12-28 19:31:00,469 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 19:31:00,994 [INFO]: Game state saved.
+2024-12-28 19:33:00,187 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 19:33:00,839 [INFO]: Game state saved.
+2024-12-28 19:33:00,840 [ERROR]: An unexpected error occurred: TowerManager.update() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 64, in main
+    update_towers()
+  File "C:\Users\mathe\git\IndustryGame-CrudeOilPack\main.py", line 61, in update_towers
+    tower_manager.update(tower_labels)
+TypeError: TowerManager.update() takes 1 positional argument but 2 were given
+2024-12-28 19:38:05,214 [INFO]: Starting Crude Oil Refinery Game
+2024-12-28 19:38:05,709 [INFO]: Game state saved.

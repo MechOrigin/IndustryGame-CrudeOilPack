@@ -25,7 +25,6 @@ class StockGraph:
             ax.set_xlabel("Time")
             ax.set_ylabel("Prices")
 
-            # Ensure deterministic rendering of prices
             for product, prices in sorted(price_history.items()):
                 if len(prices) > 0:
                     ax.plot(time_history, prices, label=product)

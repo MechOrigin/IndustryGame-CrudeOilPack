@@ -11,8 +11,7 @@ class GameState:
         self.save_file = "game_save.pkl"
 
         # Create the save directory if it doesn't exist
-        if not os.path.exists(self.save_directory):
-            os.makedirs(self.save_directory)
+        os.makedirs(self.save_directory, exist_ok=True)
 
     def save(self):
         save_path = os.path.join(self.save_directory, self.save_file)
